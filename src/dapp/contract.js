@@ -6,8 +6,10 @@ export default class Contract {
     constructor(network, callback) {
 
         let config = Config[network];
-        this.web3 = new Web3(new Web3.providers.HttpProvider(config.url));
-        this.flightSuretyApp = new this.web3.eth.Contract(FlightSuretyApp.abi, config.appAddress);
+        this.web3 = new Web3(window.ethereum);
+        const networkId = this.web3.eth.net.getId();
+        const deployedNetwork = FlightSuretyApp.networks[networkId];
+        this.flightSuretyApp = new this.web3.eth.Contract(FlightSuretyApp.abi, deployedNetwork.address);
         this.initialize(callback);
         this.owner = null;
         this.airlines = [];

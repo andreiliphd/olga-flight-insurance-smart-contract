@@ -129,7 +129,7 @@ contract FlightSuretyData {
                             external
                             requireIsOperational
     {
-        require(airlines[msg.sender].isRegistered==true);
+        require(airlines[tx.origin].isRegistered==true);
         require(airlines[_airline].isRegistered==false);
         require(airlines[_airline].isConsensusReached==false);
         require(airlines[_airline].isFunded==false);
@@ -149,11 +149,11 @@ contract FlightSuretyData {
                             external
                             requireIsOperational
     {
-        require(airlines[msg.sender].isRegistered==true, "Airline that is voting should be registered");
-        require(voted[_airline][msg.sender]==false, "You can't vote twice for the same airline");
-        voted[_airline][msg.sender] = true;
+        require(airlines[tx.origin].isRegistered==true, "Airline that is voting should be registered");
+        require(voted[_airline][tx.origin]==false, "You can't vote twice for the same airline");
+        voted[_airline][tx.origin] = true;
         votes[_airline] = votes[_airline] + 1;
-        if (votes[_airline] >= (numberOfAirlines.div(2))) {
+        if (votes[_airline] >= (numberOfAirlines.div(2).add(1))) {
             airlines[_airline] = Airline(false, true, false);
         }
     }
@@ -175,7 +175,7 @@ contract FlightSuretyData {
     {
         require(msg.value <= 1 ether, "Insurance price must be below 1 ether");
         require(airlines[_airline].isRegistered == true, "Airline should be registered.");
-        FlightInsurance memory insurance = FlightInsurance(getFlightKey(_airline, _flight, _timestamp), msg.sender, msg.value);
+        FlightInsurance memory insurance = FlightInsurance(getFlightKey(_airline, _flight, _timestamp), tx.origin, msg.value);
         insurances.push(insurance);
         emit BoughtInsurance(_airline, _flight, _timestamp, msg.sender, msg.value);
         // creditInsurees(getFlightKey(_airline, _flight, _timestamp));
@@ -197,7 +197,7 @@ contract FlightSuretyData {
         for (uint i=0; i<insurances.length; i++) {
             if (insurances[i].flightKey == _flightKey) {
                 payouts.push(insurances[i]);
-                delete insurances[i];
+//                require(false, "Insurance added to payouts.");
                 emit Credit(_flightKey);
             }
         }
@@ -221,12 +221,13 @@ contract FlightSuretyData {
                             requireIsOperational
     {
         for (uint i=0; i<payouts.length; i++) {
-                    if (payouts[i].flightKey == getFlightKey(_airline, _flight, _timestamp) && payouts[i].client == _client) {
-                        emit AmountPaid(payouts[i].amount.mul(3).div(2));
-                        address(uint160(payouts[i].client)).transfer(payouts[i].amount.mul(3).div(2));
-                        delete payouts[i];
-                    }
-                }
+//            require(payouts[i].flightKey != getFlightKey(_airline, _flight, _timestamp) && payouts[i].client != _client,"Client has been found.");
+            if (payouts[i].flightKey == getFlightKey(_airline, _flight, _timestamp) && payouts[i].client == _client) {
+//                require(false, "Payed ether.");
+                emit AmountPaid(payouts[i].amount.mul(3).div(2));
+                address(uint160(payouts[i].client)).transfer(payouts[i].amount.mul(3).div(2));
+            }
+        }
     }
 
    /**
@@ -240,11 +241,11 @@ contract FlightSuretyData {
                             public
                             payable
     {
-        require(airlines[msg.sender].isRegistered == false);
-        require(airlines[msg.sender].isConsensusReached == true);
-        require(airlines[msg.sender].isFunded == false);
+        require(airlines[tx.origin].isRegistered == false);
+        require(airlines[tx.origin].isConsensusReached == true);
+        require(airlines[tx.origin].isFunded == false);
         require(msg.value >= 1 ether);
-        airlines[msg.sender] = Airline(true, true, true);
+        airlines[tx.origin] = Airline(true, true, true);
         numberOfAirlines = numberOfAirlines + 1;
     }
 

@@ -26,7 +26,7 @@ contract('FlightSuretyApp', function(accs) {
     accounts = accs;
 });
 
-describe('some test', function() {
+describe('Testing FlightSuretyData contract', function() {
 
     before('setup contract', async () => {
         const instanceData = await FlightSuretyData.deployed();
@@ -94,6 +94,8 @@ describe('some test', function() {
 
     });
 
+});
+describe('Testing of FlightSuretyApp contract', function() {
     it('airline cannot register an Airline using registerAirline() if it is not funded', async () => {
         const instanceData = await FlightSuretyData.deployed();
         const instanceApp = await FlightSuretyApp.deployed();
@@ -107,7 +109,7 @@ describe('some test', function() {
         } catch (e) {
 
         }
-        let result = await instanceData.isAirline.call(newAirline);
+        let result = await instanceApp.isAirline.call(newAirline);
 
         // ASSERT
         assert.equal(result, false, "Airline should not be able to register another airline if it hasn't provided funding");
@@ -126,15 +128,15 @@ describe('some test', function() {
 
         // ACT
         try {
-            await instanceData.registerAirline(secondAirline, {from: firstAirline});
-            await instanceData.registerAirline(thirdAirline, {from: secondAirline});
-            await instanceData.registerAirline(fourthAirline, {from: thirdAirline});
+            await instanceApp.registerAirline(secondAirline, {from: firstAirline});
+            await instanceApp.registerAirline(thirdAirline, {from: secondAirline});
+            await instanceApp.registerAirline(fourthAirline, {from: thirdAirline});
         } catch (e) {
             console.log("Error registering airline.");
         }
-        let result2 = await instanceData.isAirline.call(secondAirline);
-        let result3 = await instanceData.isAirline.call(thirdAirline);
-        let result4 = await instanceData.isAirline.call(fourthAirline);
+        let result2 = await instanceApp.isAirline.call(secondAirline);
+        let result3 = await instanceApp.isAirline.call(thirdAirline);
+        let result4 = await instanceApp.isAirline.call(fourthAirline);
 
 
         // ASSERT
@@ -158,14 +160,14 @@ describe('some test', function() {
 
         // ACT
         try {
-            await instanceData.registerAirline(fifthAirline, {from: fourthAirline});
+            await instanceApp.registerAirline(fifthAirline, {from: fourthAirline});
         } catch (e) {
             console.log("Error registering airline.");
         }
-        let result2 = await instanceData.isAirline.call(secondAirline);
-        let result3 = await instanceData.isAirline.call(thirdAirline);
-        let result4 = await instanceData.isAirline.call(fourthAirline);
-        let result5 = await instanceData.isAirline.call(fifthAirline);
+        let result2 = await instanceApp.isAirline.call(secondAirline);
+        let result3 = await instanceApp.isAirline.call(thirdAirline);
+        let result4 = await instanceApp.isAirline.call(fourthAirline);
+        let result5 = await instanceApp.isAirline.call(fifthAirline);
 
 
         // ASSERT
@@ -189,19 +191,19 @@ describe('some test', function() {
 
         // ACT
         try {
-            await instanceData.registerAirline(fifthAirline, {from: fourthAirline});
-            await instanceData.voteForAirline(fifthAirline, {from: firstAirline});
-            await instanceData.voteForAirline(fifthAirline, {from: secondAirline});
-            await instanceData.voteForAirline(fifthAirline, {from: thirdAirline});
-            await instanceData.voteForAirline(fifthAirline, {from: fourthAirline});
-            await instanceData.fund({from: fifthAirline, value: price});
+            await instanceApp.registerAirline(fifthAirline, {from: fourthAirline});
+            await instanceApp.voteForAirline(fifthAirline, {from: firstAirline});
+            await instanceApp.voteForAirline(fifthAirline, {from: secondAirline});
+            await instanceApp.voteForAirline(fifthAirline, {from: thirdAirline});
+            // await instanceApp.voteForAirline(fifthAirline, {from: fourthAirline});
+            await instanceApp.fund({from: fifthAirline, value: price});
         } catch (e) {
-            console.log("Error registering airline.");
+            console.log("Error registering airline.", e);
         }
-        let result2 = await instanceData.isAirline.call(secondAirline);
-        let result3 = await instanceData.isAirline.call(thirdAirline);
-        let result4 = await instanceData.isAirline.call(fourthAirline);
-        let result5 = await instanceData.isAirline.call(fifthAirline);
+        let result2 = await instanceApp.isAirline.call(secondAirline);
+        let result3 = await instanceApp.isAirline.call(thirdAirline);
+        let result4 = await instanceApp.isAirline.call(fourthAirline);
+        let result5 = await instanceApp.isAirline.call(fifthAirline);
 
 
         // ASSERT
@@ -225,43 +227,21 @@ describe('some test', function() {
         let price = web3.utils.toWei("1", "ether");
         let thirdAirlineBalanceBefore;
         let thirdAirlineBalanceAfter;
-        let eventEmitted = false;
+        let passed = true;
 
         // ACT
         try {
-            thirdAirlineBalanceBefore = await web3.eth.getBalance(secondAirline);
-            let isInsuranceBought = await instanceData.buy(firstAirline, "FV105", 16200, {
+            let isInsuranceBought = await instanceApp.registerFlight(firstAirline, "FV105", 16200, {
                 from: secondAirline,
                 value: price
             });
-            truffleAssert.eventEmitted(isInsuranceBought, 'BoughtInsurance', (ev) => {
-                console.log(ev);
-                eventEmitted = true;
-                return true;
-            });
-            truffleAssert.eventEmitted(isInsuranceBought, 'Credit', (ev) => {
-                console.log(ev);
-                eventEmitted = true;
-                return true;
-            });
-            let isPayed = await instanceData.pay(firstAirline, "FV105", 16200, secondAirline, {from: secondAirline});
-            truffleAssert.eventEmitted(isPayed, 'AmountPaid', (ev) => {
-                console.log(Number(ev[0]));
-                eventEmitted = true;
-                return true;
-            });
-
-
-            thirdAirlineBalanceAfter = await web3.eth.getBalance(secondAirline);
         } catch (e) {
+            passed = false;
             console.log("Error buying insurance.", e);
         }
         // ASSERT
-        assert.equal(thirdAirlineBalanceAfter > thirdAirlineBalanceBefore, true, "Airline should not be able to register another airline if it hasn't provided funding");
-        assert.equal(eventEmitted, true, "Insurance hasn't been bought.")
+        assert.equal(passed, true, "Client can't buy an insurance");
     });
-});
-describe('Testing of FlightSuretyData contract', function() {
 
     it('can register oracles', async () => {
         const instanceData = await FlightSuretyData.deployed();
@@ -315,11 +295,17 @@ describe('Testing of FlightSuretyData contract', function() {
 
         // Submit a request for oracles to get status information for a flight
         let status = await instanceApp.fetchFlightStatus(firstAirline, flight, timestamp);
-        truffleAssert.eventEmitted(status, 'OracleRequest', (ev) => {
-            index = Number(ev["index"]);
-            console.log("Event emitted, index ", index);
+        truffleAssert.eventEmitted(status, 'ResponseInfoCreated', (ev) => {
+            console.log("ResponseInfoCreated event ", ev);
+            eventEmitted = true;
             return true;
         });
+        truffleAssert.eventEmitted(status, 'OracleRequest', (ev) => {
+            index = Number(ev["index"]);
+            console.log("OracleRequest event, index ", index);
+            return true;
+        });
+
 
         // ACT
 
@@ -335,12 +321,20 @@ describe('Testing of FlightSuretyData contract', function() {
 
                 try {
                     // Submit a response...it will only be accepted if there is an Index match
-                    await instanceApp.submitOracleResponse(oracleIndexes[idx], index, firstAirline, flight, timestamp, STATUS_CODE_ON_TIME, {from: accounts[a]});
-                    console.log("Todo bien.");
-
+                    let isInsurancePaymentReady = await instanceApp.submitOracleResponse(oracleIndexes[idx], firstAirline, flight, timestamp, STATUS_CODE_ON_TIME, {from: accounts[a]});
+                    truffleAssert.eventEmitted(isInsurancePaymentReady, 'FlightStatusInfo', (ev) => {
+                        console.log("FlightStatusInfo event.");
+                        eventEmitted = true;
+                        return true;
+                    });
+                    truffleAssert.eventEmitted(isInsurancePaymentReady, 'InsurancePaymentReady', (ev) => {
+                        console.log("InsurancePaymentReady event");
+                        eventEmitted = true;
+                        return true;
+                    });
                 } catch (e) {
                     // Enable this when debugging
-                    console.log('\nError', e, idx, oracleIndexes[idx].toNumber(), flight, timestamp);
+                    // console.log('\nError', e, idx, oracleIndexes[idx].toNumber(), flight, timestamp);
                 }
 
             }
@@ -373,11 +367,17 @@ describe('Testing of FlightSuretyData contract', function() {
 
         // Submit a request for oracles to get status information for a flight
         let status = await instanceApp.fetchFlightStatus(firstAirline, flight, timestamp);
-        truffleAssert.eventEmitted(status, 'OracleRequest', (ev) => {
-            index = Number(ev["index"]);
-            console.log("Event emitted, index ", index);
+        truffleAssert.eventEmitted(status, 'ResponseInfoCreated', (ev) => {
+            console.log("ResponseInfoCreated event ", ev);
+            eventEmitted = true;
             return true;
         });
+        truffleAssert.eventEmitted(status, 'OracleRequest', (ev) => {
+            index = Number(ev["index"]);
+            console.log("OracleRequest event, index ", index);
+            return true;
+        });
+
 
         // ACT
 
@@ -393,14 +393,20 @@ describe('Testing of FlightSuretyData contract', function() {
 
                 try {
                     // Submit a response...it will only be accepted if there is an Index match
-                    let isInsurancePaymentReady = await instanceApp.submitOracleResponse(oracleIndexes[idx], index, firstAirline, flight, timestamp, STATUS_CODE_LATE_TECHNICAL, {from: accounts[a]});
+                    let isInsurancePaymentReady = await instanceApp.submitOracleResponse(oracleIndexes[idx], firstAirline, flight, timestamp, STATUS_CODE_LATE_TECHNICAL, {from: accounts[a]});
+                    truffleAssert.eventEmitted(isInsurancePaymentReady, 'FlightStatusInfo', (ev) => {
+                        console.log("FlightStatusInfo event.");
+                        eventEmitted = true;
+                        return true;
+                    });
                     truffleAssert.eventEmitted(isInsurancePaymentReady, 'InsurancePaymentReady', (ev) => {
+                        console.log("InsurancePaymentReady event");
                         eventEmitted = true;
                         return true;
                     });
                 } catch (e) {
                     // Enable this when debugging
-                    console.log(e);
+                    // console.log(e);
                 }
 
             }
@@ -444,11 +450,16 @@ describe('Testing of FlightSuretyData contract', function() {
         // await instanceData.voteForAirline(sixthAirline, {from: thirdAirline});
         // await instanceData.voteForAirline(sixthAirline, {from: fourthAirline});
         // await instanceData.fund({from: sixthAirline, value: fundPrice});
-
-        await instanceData.buy(firstAirline, flight, timestamp, {from: thirdAirline, value: price});
-
+        console.log("Balance eth ", await web3.eth.getBalance(thirdAirline));
+        await instanceApp.registerFlight(firstAirline, flight, timestamp, {from: thirdAirline, value: price});
+        console.log("Balance eth ", await web3.eth.getBalance(thirdAirline));
         // Submit a request for oracles to get status information for a flight
-        let status = await instanceApp.fetchFlightStatus(firstAirline, flight, timestamp);
+        let status = await instanceApp.fetchFlightStatus(firstAirline, flight, timestamp, {from: secondAirline});
+        truffleAssert.eventEmitted(status, 'ResponseInfoCreated', (ev) => {
+            console.log("ResponseInfoCreated event ", ev);
+            eventEmitted = true;
+            return true;
+        });
         truffleAssert.eventEmitted(status, 'OracleRequest', (ev) => {
             index = Number(ev["index"]);
             console.log("Event emitted, index ", index);
@@ -468,29 +479,26 @@ describe('Testing of FlightSuretyData contract', function() {
             for (let idx = 0; idx < 3; idx++) {
                 try {
                     // Submit a response...it will only be accepted if there is an Index match
-                    let isInsurancePaymentReady = await instanceApp.submitOracleResponse(oracleIndexes[idx], index, firstAirline, flight, timestamp, STATUS_CODE_LATE_OTHER, {from: accounts[a]});
+                    let isInsurancePaymentReady = await instanceApp.submitOracleResponse(oracleIndexes[idx], firstAirline, flight, timestamp, STATUS_CODE_LATE_OTHER, {from: accounts[a]});
                     truffleAssert.eventEmitted(isInsurancePaymentReady, 'FlightStatusInfo', (ev) => {
-                        console.log(ev);
+                        console.log("FlightStatusInfo event.");
                         eventEmitted = true;
                         return true;
                     });
-
                     truffleAssert.eventEmitted(isInsurancePaymentReady, 'InsurancePaymentReady', (ev) => {
+                        console.log("InsurancePaymentReady");
                         eventEmitted = true;
                         return true;
                     });
                 } catch (e) {
                     // Enable this when debugging
-                    console.log(e);
+                    console.log(e["reason"]);
                 }
             }
         }
-        let isPayed = await instanceData.pay(firstAirline, flight, timestamp, thirdAirline, {from: thirdAirline});
-        truffleAssert.eventEmitted(isPayed, 'AmountPaid', (ev) => {
-            console.log(ev[0]);
-            eventEmitted = true;
-            return true;
-        });
+        console.log("Balance eth ", await web3.eth.getBalance(thirdAirline));
+        let isPayed = await instanceApp.pay(firstAirline, flight, timestamp, thirdAirline, {from: thirdAirline});
+        console.log("Balance eth ", await web3.eth.getBalance(thirdAirline));
         assert.equal(eventEmitted, true);
 
     });
