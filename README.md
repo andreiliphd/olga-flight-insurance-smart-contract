@@ -60,7 +60,7 @@ Smart contract flight insurance.
 Clone this repo:
 
 ```
-git clone git@github.com:andreiliphd/olga-flight-insurance-smart-contract.git
+git clone https://github.com/andreiliphd/olga-flight-insurance-smart-contract.git
 ```
 
 ---
