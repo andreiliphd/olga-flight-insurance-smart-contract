@@ -1,11 +1,11 @@
 const path = require("path");
+const webpack = require('webpack')
 const HtmlWebpackPlugin = require("html-webpack-plugin");
-const webpack = require("webpack");
 
 module.exports = {
-  entry: ['babel-polyfill', path.join(__dirname, "src/dapp")],
+  entry: ['babel-polyfill', path.join(__dirname, "src/dapp/index.js")],
   output: {
-    path: path.join(__dirname, "prod/dapp"),
+    path: path.join(__dirname, "build"),
     filename: "bundle.js"
   },
   module: {
@@ -33,15 +33,30 @@ module.exports = {
     ]
   },
   plugins: [
-    new HtmlWebpackPlugin({ 
-      template: path.join(__dirname, "src/dapp/index.html")
+    new webpack.ProvidePlugin({
+      process: 'process/browser',
+      Buffer: ['buffer', 'Buffer']
+    }),
+    new HtmlWebpackPlugin({
+      filename: path.join(__dirname, "build/index.html"),
+      template: path.join(__dirname, "src/dapp/index.html"),
+      inject: "body"
     })
   ],
   resolve: {
-    extensions: [".js"]
+    extensions: [".js"],
+    fallback: {
+      "os": require.resolve("os-browserify/browser"),
+      "https": require.resolve("https-browserify"),
+      "http": require.resolve("stream-http"),
+      "stream": require.resolve("stream-browserify"),
+      "crypto": require.resolve("crypto-browserify"),
+      "assert": require.resolve("assert/"),
+      "buffer": require.resolve("buffer/")
+    }
   },
   devServer: {
-    contentBase: path.join(__dirname, "dapp"),
+    contentBase: path.join(__dirname, "build/"),
     port: 8000,
     stats: "minimal"
   }

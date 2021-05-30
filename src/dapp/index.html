@@ -5,11 +5,8 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
     <title>FlightSurety</title>
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.1.1/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="icon" type="image/x-icon" href="favicon.ico">
-</head>
-
-<body>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.1/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-+0n0xVW2eSR5OomGNYDnhzAbDsOXxcvSN1TPprVMTNDbiYZCxYbOOl7+AMvyTG2x" crossorigin="anonymous">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.1/dist/js/bootstrap.bundle.min.js" integrity="sha384-gtEjrD/SeCtmISkJkNUaaKMoLD0//ElJ19smozuHV6z3Iehds+3Ulb9Bn9Plx0x4" crossorigin="anonymous"></script><body>
 
     <nav class="navbar navbar-expand-md navbar-dark bg-dark fixed-top">
         <a class="navbar-brand" href="#">FlightSurety</a>
@@ -19,12 +16,79 @@
         </button>
     </nav>
 
-    <main class="container">
+    <main class="container-md">
 
-        <div id="display-wrapper" class="top-20">
+        <div id="display-wrapper" class="top-20 row-sm">
         </div>
-        <div class="row top-20">
-            <label class="form">Flight</label> <input type="text" id="flight-number"> <btn class="btn btn-primary" id="submit-oracle">Submit to Oracles</btn>
+        <div class="row-sm">
+            <h2>Ariline control <span class="badge bg-secondary">airlines only</span></h2>
+
+            <label class="form">Airline</label>
+            <div class="dropdown">
+                <button id="selected-airline" class="btn btn-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                    Airline addresses
+                </button>
+                <ul class="dropdown-menu dropdown-menu-dark" aria-labelledby="dropdownMenuButton2" id="airline">
+                    <li><a class="dropdown-item" href="#">0x627306090abaB3A6e1400e9345bC60c78a8BEf57</a></li>
+                    <li><a class="dropdown-item" href="#">0xf17f52151EbEF6C7334FAD080c5704D77216b732</a></li>
+                    <li><a class="dropdown-item" href="#">0xC5fdf4076b8F3A5357c5E395ab970B5B54098Fef</a></li>
+                    <li><a class="dropdown-item" href="#">0x821aEa9a577a9b44299B9c15c88cf3087F3b5544</a></li>
+                    <li><a class="dropdown-item" href="#">0x0d1d4e623D10F9FBA5Db95830F7d3839406C6AF2</a></li>
+                    <li><a class="dropdown-item" href="#">0x2932b7A2355D6fecc4b5c0B6BD44cC31df247a2e</a></li>
+                    <li><a class="dropdown-item" href="#">0x2191eF87E392377ec08E7c08Eb105Ef5448eCED5</a></li>
+                    <li><a class="dropdown-item" href="#">0x0F4F2Ac550A1b4e2280d04c21cEa7EBD822934b5</a></li>
+                    <li><a class="dropdown-item" href="#">0x6330A553Fc93768F612722BB8c2eC78aC90B3bbc</a></li>
+                    <li><a class="dropdown-item" href="#">0x5AEDA56215b167893e80B4fE645BA6d5Bab767DE</a></li>
+                </ul>
+            </div>
+            <btn class="btn btn-primary" id="register">Register</btn>
+            <btn class="btn btn-primary" id="vote">Vote</btn>
+            <btn class="btn btn-primary" id="fund">Fund</btn>
+            <btn class="btn btn-primary" id="check">Check</btn>
+        </div>
+        <div class="row-sm">
+            <h2>Passenger control <span class="badge bg-secondary">passangers only</span></h2>
+            <div class="dropdown">
+                <button id="selected-airline-purchase" class="btn btn-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                    Airline addresses
+                </button>
+                <ul class="dropdown-menu dropdown-menu-dark" aria-labelledby="dropdownMenuButton2" id="airline-purchase">
+                    <li><a class="dropdown-item" href="#">0x627306090abaB3A6e1400e9345bC60c78a8BEf57</a></li>
+                    <li><a class="dropdown-item" href="#">0xf17f52151EbEF6C7334FAD080c5704D77216b732</a></li>
+                    <li><a class="dropdown-item" href="#">0xC5fdf4076b8F3A5357c5E395ab970B5B54098Fef</a></li>
+                    <li><a class="dropdown-item" href="#">0x821aEa9a577a9b44299B9c15c88cf3087F3b5544</a></li>
+                    <li><a class="dropdown-item" href="#">0x0d1d4e623D10F9FBA5Db95830F7d3839406C6AF2</a></li>
+                    <li><a class="dropdown-item" href="#">0x2932b7A2355D6fecc4b5c0B6BD44cC31df247a2e</a></li>
+                    <li><a class="dropdown-item" href="#">0x2191eF87E392377ec08E7c08Eb105Ef5448eCED5</a></li>
+                    <li><a class="dropdown-item" href="#">0x0F4F2Ac550A1b4e2280d04c21cEa7EBD822934b5</a></li>
+                    <li><a class="dropdown-item" href="#">0x6330A553Fc93768F612722BB8c2eC78aC90B3bbc</a></li>
+                    <li><a class="dropdown-item" href="#">0x5AEDA56215b167893e80B4fE645BA6d5Bab767DE</a></li>
+                </ul>
+            </div>
+            <label class="form">Flight</label> <input type="text" id="flight-number">
+            <label class="form">Timestamp</label> <input type="text" id="timestamp">
+            <label class="form">Price</label> <input type="text" id="price">
+            <btn class="btn btn-primary" id="purchase">Purchase</btn>
+            <btn class="btn btn-primary" id="fetch">Fetch</btn>
+            <btn class="btn btn-primary" id="withdraw">Withdraw</btn>
+        </div>
+        <div class="row-sm">
+            <h2>App contract control <span class="badge bg-secondary">contract owner only</span></h2>
+
+            <label class="form">Status</label> <input type="text" id="contract-app-status">
+            <btn class="btn btn-primary" id="status-app">Status</btn>
+            <btn class="btn btn-primary" id="set-app">Set status</btn>
+        </div>
+        <div class="row-sm">
+            <h2>Data contract control <span class="badge bg-secondary">contract owner only</span></h2>
+
+            <label class="form">Status</label> <input type="text" id="contract-data-status">
+            <btn class="btn btn-primary" id="status-data">Status</btn>
+            <btn class="btn btn-primary" id="set-data">Set status</btn>
+        </div>
+        <div class="row-sm">
+            <div id="event-list" class="list-group">
+            </div>
         </div>
     </main>
 

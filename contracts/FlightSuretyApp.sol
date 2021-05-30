@@ -32,6 +32,8 @@ contract FlightSuretyApp {
         uint256 updatedTimestamp;        
         address airline;
     }
+    bool private operational = true;                                    // Blocks all state changes throughout the contract if false
+
     mapping(bytes32 => Flight) private flights;
 
  
@@ -85,12 +87,22 @@ contract FlightSuretyApp {
     /*                                       UTILITY FUNCTIONS                                  */
     /********************************************************************************************/
 
-    function isOperational() 
-                            public 
-                            pure 
-                            returns(bool) 
+    function setOperatingStatus
+                            (
+                                bool mode
+                            )
+                            public
+                            requireContractOwner
     {
-        return true;  // Modify to call data contract's status
+        operational = mode;
+    }
+
+
+    function isOperational()
+                            public 
+                            returns(bool)
+    {
+        return operational;  // Modify to call data contract's status
     }
 
     /********************************************************************************************/
@@ -109,7 +121,8 @@ contract FlightSuretyApp {
                             (
                                 address _airline
                             )
-                            external
+                            public
+                            requireIsOperational
                             returns(bool success, uint256 votes)
     {
         flightSuretyData.registerAirline(_airline);
@@ -154,7 +167,7 @@ contract FlightSuretyApp {
                                      string memory _flight,
                                      uint256 _timestamp,
                                      address _client
-                                ) public payable
+                                ) public payable requireIsOperational
     {
         flightSuretyData.pay(_airline, _flight, _timestamp, _client);
     }
@@ -169,7 +182,7 @@ contract FlightSuretyApp {
                                     string memory flight,
                                     uint256 timestamp
                                 )
-                                internal
+                                internal requireIsOperational
     {
         flightSuretyData.creditInsurees(getFlightKey(airline, flight, timestamp));
     }
@@ -183,7 +196,7 @@ contract FlightSuretyApp {
                             string calldata flight,
                             uint256 timestamp                            
                         )
-                        external
+                        external requireIsOperational
     {
         uint8 index = getRandomIndex(msg.sender);
         // Generate a unique key for storing the request
@@ -209,7 +222,7 @@ contract FlightSuretyApp {
     uint256 public constant REGISTRATION_FEE = 1 ether;
 
     // Number of oracles that must respond for valid status
-    uint256 private constant MIN_RESPONSES = 3;
+    uint256 private constant MIN_RESPONSES = 20;
 
 
     struct Oracle {
@@ -251,6 +264,7 @@ contract FlightSuretyApp {
                             )
                             external
                             payable
+                            requireIsOperational
     {
         // Require registration fee
         require(msg.value >= REGISTRATION_FEE, "Registration fee is required");
@@ -268,6 +282,7 @@ contract FlightSuretyApp {
                             )
                             view
                             external
+                            requireIsOperational
                             returns(uint8[3] memory)
     {
         require(oracles[msg.sender].isRegistered, "Not registered as an oracle");
@@ -291,6 +306,7 @@ contract FlightSuretyApp {
                             uint8 statusCode
                         )
                         external
+                        requireIsOperational
     {
         require((oracles[msg.sender].indexes[0] == index) || (oracles[msg.sender].indexes[1] == index) || (oracles[msg.sender].indexes[2] == index), "Index does not match oracle request");
         bytes32 key = keccak256(abi.encodePacked(airline, flight, timestamp));
@@ -320,6 +336,7 @@ contract FlightSuretyApp {
                         )
                         pure
                         internal
+                        requireIsOperational
                         returns(bytes32) 
     {
         return keccak256(abi.encodePacked(airline, flight, timestamp));
@@ -331,6 +348,7 @@ contract FlightSuretyApp {
                                 address account         
                             )
                             internal
+                            requireIsOperational
                             returns(uint8[3] memory)
     {
         uint8[3] memory indexes;
@@ -355,6 +373,7 @@ contract FlightSuretyApp {
                                 address account
                             )
                             internal
+                            requireIsOperational
                             returns (uint8)
     {
         uint8 maxValue = 10;

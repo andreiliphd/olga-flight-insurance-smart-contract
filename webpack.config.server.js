@@ -1,18 +1,11 @@
 const webpack = require('webpack')
 const path = require('path')
-const nodeExternals = require('webpack-node-externals')
-const StartServerPlugin = require('start-server-webpack-plugin')
+const StartServerPlugin = require('start-server-webpack-plugin-2')
 
 module.exports = {
-    entry: [
-        'webpack/hot/poll?1000',
-        './src/server/index'
-    ],
+    entry: [path.join(__dirname, '/src/server/index.js')],
     watch: true,
     target: 'node',
-    externals: [nodeExternals({
-        whitelist: ['webpack/hot/poll?1000']
-    })],
     module: {
         rules: [{
             test: /\.js?$/,
@@ -21,18 +14,20 @@ module.exports = {
         }]
     },
     plugins: [
-        new StartServerPlugin('server.js'),
-        new webpack.NamedModulesPlugin(),
-        new webpack.HotModuleReplacementPlugin(),
-        new webpack.NoEmitOnErrorsPlugin(),
-        new webpack.DefinePlugin({
-            "process.env": {
-                "BUILD_TARGET": JSON.stringify('server')
+        new StartServerPlugin({
+                name: 'index.js',
+                nodeArgs: ['--inspect']
             }
-        }),
+        ),
+        new webpack.DefinePlugin({
+            'process.env.NODE_ENV': JSON.stringify(process.env.NODE_ENV || 'development')
+        })
     ],
     output: {
-        path: path.join(__dirname, 'prod/server'),
-        filename: 'server.js'
+        path: path.join(__dirname, 'build'),
+        filename: 'index.js'
+    },
+    experiments: {
+        topLevelAwait: true
     }
 }

@@ -2,13 +2,36 @@ const FlightSuretyApp = artifacts.require("FlightSuretyApp");
 const FlightSuretyData = artifacts.require("FlightSuretyData");
 const fs = require('fs');
 
-module.exports = function(deployer) {
+module.exports = async function(deployer, network ,accounts) {
 
-    let firstAirline = '0xf17f52151EbEF6C7334FAD080c5704D77216b732';
+    let instanceData;
     deployer.deploy(FlightSuretyData)
-    .then(() => {
+    .then((instance) => {
+        instanceData = instance;
         return deployer.deploy(FlightSuretyApp, FlightSuretyData.address)
-                .then(() => {
+                .then(async (instance) => {
+                    let status = await instanceData.authorizeCaller(instance.address);
+                    console.log("Status of transaction ", status);
+                    let firstAirline = accounts[0];
+                    let secondAirline = accounts[2];
+                    let thirdAirline = accounts[3];
+                    let fourthAirline = accounts[4];
+
+                    // ACT
+                    try {
+                        await instance.registerAirline(secondAirline, {from: firstAirline});
+                        await instance.registerAirline(thirdAirline, {from: secondAirline});
+                        await instance.registerAirline(fourthAirline, {from: thirdAirline});
+                    } catch (e) {
+                        console.log("Error registering airline.");
+                    }
+                    let result2 = await instance.isAirline.call(secondAirline);
+                    console.log("Status of transaction ", result2);
+                    let result3 = await instance.isAirline.call(thirdAirline);
+                    console.log("Status of transaction ", result3);
+                    let result4 = await instance.isAirline.call(fourthAirline);
+                    console.log("Status of transaction ", result4);
+
                     let config = {
                         localhost: {
                             url: 'http://localhost:8545',

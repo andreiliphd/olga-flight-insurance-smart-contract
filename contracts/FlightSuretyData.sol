@@ -25,6 +25,7 @@ contract FlightSuretyData {
         bytes32 flightKey;
         address payable client;
         uint256 amount;
+        bool isPaid;
     }
     FlightInsurance[] insurances;
     FlightInsurance[] payouts;
@@ -76,6 +77,13 @@ contract FlightSuretyData {
         _;
     }
 
+    modifier onlyAppContract()
+        {
+            require(msg.sender == appContract, "Caller is app contract");
+            _;
+        }
+
+
     /********************************************************************************************/
     /*                                       UTILITY FUNCTIONS                                  */
     /********************************************************************************************/
@@ -105,7 +113,7 @@ contract FlightSuretyData {
                             (
                                 bool mode
                             ) 
-                            external
+                            public
                             requireContractOwner 
     {
         operational = mode;
@@ -128,11 +136,12 @@ contract FlightSuretyData {
                             )
                             external
                             requireIsOperational
+                            onlyAppContract
     {
-        require(airlines[tx.origin].isRegistered==true);
-        require(airlines[_airline].isRegistered==false);
-        require(airlines[_airline].isConsensusReached==false);
-        require(airlines[_airline].isFunded==false);
+        require(airlines[tx.origin].isRegistered==true, "Airline that is registering another airline should be registered");
+        require(airlines[_airline].isRegistered==false, "You can't register already registered airline");
+        require(airlines[_airline].isConsensusReached==false,"Consensus is not reaced for this airline");
+        require(airlines[_airline].isFunded==false, "Airline is already funded therefore registered");
         if (numberOfAirlines < 4) {
             airlines[_airline] = Airline(true, true, true);
             numberOfAirlines = numberOfAirlines + 1;
@@ -148,6 +157,7 @@ contract FlightSuretyData {
                             )
                             external
                             requireIsOperational
+                            onlyAppContract
     {
         require(airlines[tx.origin].isRegistered==true, "Airline that is voting should be registered");
         require(voted[_airline][tx.origin]==false, "You can't vote twice for the same airline");
@@ -172,10 +182,11 @@ contract FlightSuretyData {
                             external
                             payable
                             requireIsOperational
+                            onlyAppContract
     {
         require(msg.value <= 1 ether, "Insurance price must be below 1 ether");
         require(airlines[_airline].isRegistered == true, "Airline should be registered.");
-        FlightInsurance memory insurance = FlightInsurance(getFlightKey(_airline, _flight, _timestamp), tx.origin, msg.value);
+        FlightInsurance memory insurance = FlightInsurance(getFlightKey(_airline, _flight, _timestamp), tx.origin, msg.value, false);
         insurances.push(insurance);
         emit BoughtInsurance(_airline, _flight, _timestamp, msg.sender, msg.value);
         // creditInsurees(getFlightKey(_airline, _flight, _timestamp));
@@ -189,15 +200,13 @@ contract FlightSuretyData {
                                 (
                                     bytes32 _flightKey
                                 )
-                                public
+                                external
                                 requireIsOperational
+                                onlyAppContract
     {
-//        require(msg.sender==appContract, "You can call this contract only from authorized address.");
-//        require(insurances[0].flightKey == _flightKey || insurances[1].flightKey == _flightKey, "No match for insurance with provided flight key.");
         for (uint i=0; i<insurances.length; i++) {
             if (insurances[i].flightKey == _flightKey) {
                 payouts.push(insurances[i]);
-//                require(false, "Insurance added to payouts.");
                 emit Credit(_flightKey);
             }
         }
@@ -212,20 +221,21 @@ contract FlightSuretyData {
     function pay
                             (
                                 address _airline,
-                                string memory _flight,
+                                string calldata _flight,
                                 uint256 _timestamp,
                                 address _client
                             )
-                            public
+                            external
                             payable
                             requireIsOperational
+                            onlyAppContract
     {
         for (uint i=0; i<payouts.length; i++) {
-//            require(payouts[i].flightKey != getFlightKey(_airline, _flight, _timestamp) && payouts[i].client != _client,"Client has been found.");
-            if (payouts[i].flightKey == getFlightKey(_airline, _flight, _timestamp) && payouts[i].client == _client) {
-//                require(false, "Payed ether.");
+            if (payouts[i].flightKey == getFlightKey(_airline, _flight, _timestamp) && payouts[i].client == tx.origin) {
+                require(payouts[i].isPaid == false, "Insurance for this client has been already paid");
                 emit AmountPaid(payouts[i].amount.mul(3).div(2));
-                address(uint160(payouts[i].client)).transfer(payouts[i].amount.mul(3).div(2));
+                payouts[i].isPaid = true;
+                address(uint160(_client)).transfer(payouts[i].amount.mul(3).div(2));
             }
         }
     }
@@ -240,6 +250,8 @@ contract FlightSuretyData {
                             )
                             public
                             payable
+                            requireIsOperational
+                            onlyAppContract
     {
         require(airlines[tx.origin].isRegistered == false);
         require(airlines[tx.origin].isConsensusReached == true);
@@ -269,7 +281,8 @@ contract FlightSuretyData {
     */
     function() requireIsOperational
                             external 
-                            payable 
+                            payable
+                            onlyAppContract
     {
         fund();
     }
